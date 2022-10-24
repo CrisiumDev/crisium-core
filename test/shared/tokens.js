@@ -187,12 +187,12 @@ function testSetBaseURI(tester, testConfig = true) {
       const { token, deployer, alice, revealer, minter } = tester;
 
       await expectRevert(
-        token.setBaseURI("http://my-site.com/", { from:alice }),
+        token.setBaseURI("ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB", { from:alice }),
         "IMSpaceMissionToken: must have reveal role to set base URI"
       );
 
       await expectRevert(
-        token.setBaseURI("http://my-site.com/", { from:minter }),
+        token.setBaseURI("ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg", { from:minter }),
         "IMSpaceMissionToken: must have reveal role to set base URI"
       );
     });
@@ -207,29 +207,29 @@ function testSetBaseURI(tester, testConfig = true) {
       assert.equal(await token.tokenURI(9), "");
       await expectRevert(token.tokenURI(10), "ERC721Metadata: URI query for nonexistent token");
 
-      await token.setBaseURI("http://my-site.com/base/", { from:deployer }),
+      await token.setBaseURI("ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/", { from:deployer }),
 
       // check URIs
-      assert.equal(await token.tokenURI(0), "http://my-site.com/base/0");
-      assert.equal(await token.tokenURI(1), "http://my-site.com/base/1");
-      assert.equal(await token.tokenURI(9), "http://my-site.com/base/9");
+      assert.equal(await token.tokenURI(0), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/0");
+      assert.equal(await token.tokenURI(1), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/1");
+      assert.equal(await token.tokenURI(9), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/9");
 
       await expectRevert(token.tokenURI(10), "ERC721Metadata: URI query for nonexistent token");
       await expectRevert(token.tokenURI(20), "ERC721Metadata: URI query for nonexistent token");
 
       await token.safeMint(bob, 10, { from:deployer });
 
-      assert.equal(await token.tokenURI(10), "http://my-site.com/base/10");
-      assert.equal(await token.tokenURI(19), "http://my-site.com/base/19");
+      assert.equal(await token.tokenURI(10), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/10");
+      assert.equal(await token.tokenURI(19), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/19");
       await expectRevert(token.tokenURI(20), "ERC721Metadata: URI query for nonexistent token");
 
-      await token.setBaseURI("http://my-site.com/second/", { from:revealer });
+      await token.setBaseURI("ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/", { from:revealer });
 
-      assert.equal(await token.tokenURI(0), "http://my-site.com/second/0");
-      assert.equal(await token.tokenURI(1), "http://my-site.com/second/1");
-      assert.equal(await token.tokenURI(9), "http://my-site.com/second/9");
-      assert.equal(await token.tokenURI(10), "http://my-site.com/second/10");
-      assert.equal(await token.tokenURI(19), "http://my-site.com/second/19");
+      assert.equal(await token.tokenURI(0), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/0");
+      assert.equal(await token.tokenURI(1), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/1");
+      assert.equal(await token.tokenURI(9), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/9");
+      assert.equal(await token.tokenURI(10), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/10");
+      assert.equal(await token.tokenURI(19), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/19");
       await expectRevert(token.tokenURI(20), "ERC721Metadata: URI query for nonexistent token");
     });
   });
@@ -243,12 +243,12 @@ function testSetTokenURI(tester, testConfig = true) {
       const { token, deployer, alice, revealer, minter } = tester;
 
       await expectRevert(
-        token.setBaseURI("http://my-site.com/", { from:alice }),
+        token.setBaseURI("ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/", { from:alice }),
         "IMSpaceMissionToken: must have reveal role to set base URI"
       );
 
       await expectRevert(
-        token.setBaseURI("http://my-site.com/", { from:minter }),
+        token.setBaseURI("ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/", { from:minter }),
         "IMSpaceMissionToken: must have reveal role to set base URI"
       );
     });
@@ -259,12 +259,12 @@ function testSetTokenURI(tester, testConfig = true) {
       await token.safeMint(alice, 10, { from:minter });
 
       await expectRevert(
-        token.setTokenURI(0, "http://my-site.com/custom/0", { from:alice }),
+        token.setTokenURI(0, "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/custom/0", { from:alice }),
         "IMSpaceMissionToken: must have reveal role to set token URI"
       );
 
       await expectRevert(
-        token.setTokenURI(9, "http://my-site.com/custom/nine", { from:minter }),
+        token.setTokenURI(9, "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/custom/nine", { from:minter }),
         "IMSpaceMissionToken: must have reveal role to set token URI"
       );
     });
@@ -273,14 +273,14 @@ function testSetTokenURI(tester, testConfig = true) {
       const { token, deployer, alice, revealer, minter } = tester;
 
       await expectRevert(
-        token.setTokenURI(0, "http://my-site.com/custom/0", { from:deployer }),
+        token.setTokenURI(0, "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/custom/0", { from:deployer }),
         "ERC721Metadata: URI set for nonexistent token"
       );
 
       await token.safeMint(alice, 10, { from:minter });
 
       await expectRevert(
-        token.setTokenURI(10, "http://my-site.com/custom/eleven", { from:revealer }),
+        token.setTokenURI(10, "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/custom/eleven", { from:revealer }),
         "ERC721Metadata: URI set for nonexistent token"
       );
     });
@@ -295,29 +295,29 @@ function testSetTokenURI(tester, testConfig = true) {
       assert.equal(await token.tokenURI(9), "");
       await expectRevert(token.tokenURI(10), "ERC721Metadata: URI query for nonexistent token");
 
-      await token.setBaseURI("http://my-site.com/base/", { from:deployer }),
+      await token.setBaseURI("ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/", { from:deployer }),
 
       // check URIs
-      assert.equal(await token.tokenURI(0), "http://my-site.com/base/0");
-      assert.equal(await token.tokenURI(1), "http://my-site.com/base/1");
-      assert.equal(await token.tokenURI(9), "http://my-site.com/base/9");
+      assert.equal(await token.tokenURI(0), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/0");
+      assert.equal(await token.tokenURI(1), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/1");
+      assert.equal(await token.tokenURI(9), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/9");
 
       await expectRevert(token.tokenURI(10), "ERC721Metadata: URI query for nonexistent token");
       await expectRevert(token.tokenURI(20), "ERC721Metadata: URI query for nonexistent token");
 
       await token.safeMint(bob, 10, { from:deployer });
 
-      assert.equal(await token.tokenURI(10), "http://my-site.com/base/10");
-      assert.equal(await token.tokenURI(19), "http://my-site.com/base/19");
+      assert.equal(await token.tokenURI(10), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/10");
+      assert.equal(await token.tokenURI(19), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/19");
       await expectRevert(token.tokenURI(20), "ERC721Metadata: URI query for nonexistent token");
 
-      await token.setBaseURI("http://my-site.com/second/", { from:revealer });
+      await token.setBaseURI("ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/", { from:revealer });
 
-      assert.equal(await token.tokenURI(0), "http://my-site.com/second/0");
-      assert.equal(await token.tokenURI(1), "http://my-site.com/second/1");
-      assert.equal(await token.tokenURI(9), "http://my-site.com/second/9");
-      assert.equal(await token.tokenURI(10), "http://my-site.com/second/10");
-      assert.equal(await token.tokenURI(19), "http://my-site.com/second/19");
+      assert.equal(await token.tokenURI(0), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/0");
+      assert.equal(await token.tokenURI(1), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/1");
+      assert.equal(await token.tokenURI(9), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/9");
+      assert.equal(await token.tokenURI(10), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/10");
+      assert.equal(await token.tokenURI(19), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/19");
       await expectRevert(token.tokenURI(20), "ERC721Metadata: URI query for nonexistent token");
     });
 
@@ -326,46 +326,46 @@ function testSetTokenURI(tester, testConfig = true) {
 
       await token.safeMint(alice, 10, { from:minter });
 
-      await token.setTokenURI(2,  "http://my-site.com/custom/two", { from:deployer });
+      await token.setTokenURI(2,  "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/two", { from:deployer });
 
       assert.equal(await token.tokenURI(0), "");
       assert.equal(await token.tokenURI(1), "");
-      assert.equal(await token.tokenURI(2), "http://my-site.com/custom/two");
+      assert.equal(await token.tokenURI(2), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/two");
       assert.equal(await token.tokenURI(9), "");
       await expectRevert(token.tokenURI(10), "ERC721Metadata: URI query for nonexistent token");
 
-      await token.setTokenURI(1,  "http://my-site.com/custom/one", { from:revealer });
+      await token.setTokenURI(1,  "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/one", { from:revealer });
 
       assert.equal(await token.tokenURI(0), "");
-      assert.equal(await token.tokenURI(1), "http://my-site.com/custom/one");
-      assert.equal(await token.tokenURI(2), "http://my-site.com/custom/two");
+      assert.equal(await token.tokenURI(1), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/one");
+      assert.equal(await token.tokenURI(2), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/two");
       assert.equal(await token.tokenURI(9), "");
       await expectRevert(token.tokenURI(10), "ERC721Metadata: URI query for nonexistent token");
 
-      await token.setBaseURI("http://my-site.com/base/", { from:revealer });
+      await token.setBaseURI("ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/", { from:revealer });
 
-      assert.equal(await token.tokenURI(0), "http://my-site.com/base/0");
-      assert.equal(await token.tokenURI(1), "http://my-site.com/custom/one");
-      assert.equal(await token.tokenURI(2), "http://my-site.com/custom/two");
-      assert.equal(await token.tokenURI(9), "http://my-site.com/base/9");
+      assert.equal(await token.tokenURI(0), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/0");
+      assert.equal(await token.tokenURI(1), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/one");
+      assert.equal(await token.tokenURI(2), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/two");
+      assert.equal(await token.tokenURI(9), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/9");
       await expectRevert(token.tokenURI(10), "ERC721Metadata: URI query for nonexistent token");
 
       await token.safeMint(bob, 10, { from:deployer });
 
-      assert.equal(await token.tokenURI(10), "http://my-site.com/base/10");
-      assert.equal(await token.tokenURI(19), "http://my-site.com/base/19");
+      assert.equal(await token.tokenURI(10), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/10");
+      assert.equal(await token.tokenURI(19), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/19");
       await expectRevert(token.tokenURI(20), "ERC721Metadata: URI query for nonexistent token");
 
-      await token.setTokenURI(1,  "http://my-site.com/revision/one", { from:revealer });
-      await token.setBaseURI("http://my-site.com/second/", { from:revealer });
-      await token.setTokenURI(9,  "http://my-site.com/custom/nine", { from:revealer });
+      await token.setTokenURI(1,  "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/revision/one", { from:revealer });
+      await token.setBaseURI("ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/replacement/", { from:revealer });
+      await token.setTokenURI(9,  "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/nine", { from:revealer });
 
-      assert.equal(await token.tokenURI(0), "http://my-site.com/second/0");
-      assert.equal(await token.tokenURI(1), "http://my-site.com/revision/one");
-      assert.equal(await token.tokenURI(2), "http://my-site.com/custom/two");
-      assert.equal(await token.tokenURI(9), "http://my-site.com/custom/nine");
-      assert.equal(await token.tokenURI(10), "http://my-site.com/second/10");
-      assert.equal(await token.tokenURI(19), "http://my-site.com/second/19");
+      assert.equal(await token.tokenURI(0), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/replacement/0");
+      assert.equal(await token.tokenURI(1), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/revision/one");
+      assert.equal(await token.tokenURI(2), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/two");
+      assert.equal(await token.tokenURI(9), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/nine");
+      assert.equal(await token.tokenURI(10), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/replacement/10");
+      assert.equal(await token.tokenURI(19), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/replacement/19");
       await expectRevert(token.tokenURI(20), "ERC721Metadata: URI query for nonexistent token");
     });
   });
@@ -420,36 +420,36 @@ function testSetRoyalty(tester, testConfig = true) {
     it('setRoyalty alters royalty parameters', async () => {
       const { token, deployer, royalty, alice, bob, carol, dave } = tester;
 
-      await token.setRoyalty(alice, 2500, { from:deployer });
+      await token.setRoyalty(alice, 250, { from:deployer });
       assert.equal(await token.royaltyReceiver(), alice);
-      assert.equal(await token.royaltyPercentBips(), '2500');
+      assert.equal(await token.royaltyPercentBips(), '250');
 
-      await token.setRoyalty(bob, 10000, { from:royalty });
+      await token.setRoyalty(bob, 1000, { from:royalty });
       assert.equal(await token.royaltyReceiver(), bob);
-      assert.equal(await token.royaltyPercentBips(), '10000');
+      assert.equal(await token.royaltyPercentBips(), '1000');
 
       await token.grantRole(ROYALTY_ROLE, carol, { from:deployer });
       assert.equal(await token.royaltyReceiver(), bob);
-      assert.equal(await token.royaltyPercentBips(), '10000');
+      assert.equal(await token.royaltyPercentBips(), '1000');
 
-      await token.setRoyalty(dave, 1500, { from:carol });
+      await token.setRoyalty(dave, 150, { from:carol });
       assert.equal(await token.royaltyReceiver(), dave);
-      assert.equal(await token.royaltyPercentBips(), '1500');
+      assert.equal(await token.royaltyPercentBips(), '150');
     });
 
     it('setRoyalty emits RoyaltyChanged event', async () => {
       const { token, deployer, royalty, alice, bob } = tester;
 
-      let res = await token.setRoyalty(alice, 2500, { from:deployer });
+      let res = await token.setRoyalty(alice, 250, { from:deployer });
       await expectEvent.inTransaction(res.tx, token, 'RoyaltyChanged', {
         receiver: alice,
-        percentBips: '2500'
+        percentBips: '250'
       });
 
-      res = await token.setRoyalty(bob, 10000, { from:royalty });
+      res = await token.setRoyalty(bob, 1000, { from:royalty });
       await expectEvent.inTransaction(res.tx, token, 'RoyaltyChanged', {
         receiver: bob,
-        percentBips: '10000'
+        percentBips: '1000'
       });
     });
   });
@@ -495,14 +495,14 @@ function testRoyaltyInfo(tester, testConfig = true) {
       assert.equal(res.royaltyAmount, '800');
 
       // set 25%
-      await token.setRoyalty(bob, 2500, { from:deployer });
+      await token.setRoyalty(bob, 1000, { from:deployer });
       res = await token.royaltyInfo(0, 100);
       assert.equal(res.receiver, bob);
-      assert.equal(res.royaltyAmount, '25');
+      assert.equal(res.royaltyAmount, '10');
 
       res = await token.royaltyInfo(1, 20000);
       assert.equal(res.receiver, bob);
-      assert.equal(res.royaltyAmount, '5000');
+      assert.equal(res.royaltyAmount, '2000');
     });
   });
 }

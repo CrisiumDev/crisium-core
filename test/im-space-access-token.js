@@ -13,7 +13,7 @@ contract('MockIMSpaceAccessToken', (accounts) => {
   beforeEach(async () => {
     const { deployer, minter, royalty } = this;
 
-    this.token = await MockIMSpaceAccessToken.new("MockIMSpaceAccessToken", "MP", "http://imspace.com/token/", { from: deployer });
+    this.token = await MockIMSpaceAccessToken.new("MockIMSpaceAccessToken", "MP", "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB", { from: deployer });
     await this.token.grantRole(MINTER_ROLE, minter);
     await this.token.grantRole(ROYALTY_ROLE, royalty);
 

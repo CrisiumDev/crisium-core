@@ -18,6 +18,8 @@ abstract contract BaseLootCrateToken is ERC721Enumerable, IERC721Receiver {
 
   event Purchase(address indexed user, address indexed to, uint256 indexed tokenId, uint256 tokens);
   event Reveal(address indexed user, address indexed to, uint256 indexed tokenId, uint256 tokens);
+  event SaleContentAdded(address indexed token, uint256 amount);
+  event SaleContentRemoved(address indexed token, uint256 amount);
 
   struct SaleContent {
       address token;
@@ -66,6 +68,7 @@ abstract contract BaseLootCrateToken is ERC721Enumerable, IERC721Receiver {
           }
 
           _tokenIdTracker.increment();
+
           emit Purchase(_user, _to, tokenId, _tokens);
       }
 
@@ -90,6 +93,7 @@ abstract contract BaseLootCrateToken is ERC721Enumerable, IERC721Receiver {
           amount: _amount
       }));
       _tokens += _amount;
+      emit SaleContentAdded(_token, _amount);
       return _saleContents.length - 1;
   }
 
@@ -108,6 +112,7 @@ abstract contract BaseLootCrateToken is ERC721Enumerable, IERC721Receiver {
       }
 
       _saleContents.pop();
+      emit SaleContentRemoved(content.token, content.amount);
   }
 
   function onERC721Received(

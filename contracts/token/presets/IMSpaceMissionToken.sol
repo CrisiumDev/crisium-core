@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "../extensions/ERC721Resale.sol";
 import "../utils/IBatchMintable.sol";
+import "../utils/IPFSLibrary.sol";
 
 abstract contract IMSpaceMissionToken is
     Context,
@@ -30,7 +31,7 @@ abstract contract IMSpaceMissionToken is
 
     string public PROVENANCE_HASH = "";
     uint256 public REVEAL_TIMESTAMP;
-    uint256 public MAX_SUPPLY;
+    uint256 public immutable MAX_SUPPLY;
 
     uint256 public revealStartingIndexBlock;
     uint256 public revealStartingIndex;
@@ -55,6 +56,8 @@ abstract contract IMSpaceMissionToken is
         _setupRole(MINTER_ROLE, _msgSender());
         _setupRole(REVEAL_ROLE, _msgSender());
         _setupRole(ROYALTY_ROLE, _msgSender());
+
+        _setRoyaltyMax(1000);   // 10%
     }
 
     /**
@@ -117,6 +120,7 @@ abstract contract IMSpaceMissionToken is
     */
     function setBaseURI(string memory baseURI) public {
         require(hasRole(REVEAL_ROLE, _msgSender()), "IMSpaceMissionToken: must have reveal role to set base URI");
+        require(IPFSLibrary.uriSeemsValid(baseURI), "ERC721Metadata: IPFS URI required");
         _baseTokenURI = baseURI;
     }
 
@@ -126,6 +130,7 @@ abstract contract IMSpaceMissionToken is
     */
     function setTokenURI(uint256 tokenId, string memory customURI) public {
         require(hasRole(REVEAL_ROLE, _msgSender()), "IMSpaceMissionToken: must have reveal role to set token URI");
+        require(IPFSLibrary.uriSeemsValid(customURI), "ERC721Metadata: IPFS URI required");
         require(_exists(tokenId), "ERC721Metadata: URI set for nonexistent token");
         _customTokenURI[tokenId] = customURI;
     }

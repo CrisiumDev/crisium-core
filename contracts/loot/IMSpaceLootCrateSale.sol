@@ -6,16 +6,20 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-abstract contract IMSpaceLootCrateSale is BaseLootCrateSale, Ownable {
+abstract contract IMSpaceLootCrateSale is BaseLootCrateSale, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    uint256 public totalSupply;
+    event RecipientChanged(address indexed previousRecipient, address indexed newRecipient);
+    event ProceedsClaimed(address indexed recipient, uint256 amount);
+
+    uint256 public immutable totalSupply;
     uint256 public supply;
 
-    uint256 public purchaseLimit;
-    address public token;
-    uint256 public price;
+    uint256 public immutable purchaseLimit;
+    address public immutable token;
+    uint256 public immutable price;
 
     address public recipient;
 
@@ -43,8 +47,9 @@ abstract contract IMSpaceLootCrateSale is BaseLootCrateSale, Ownable {
         }
     }
 
-    function purchase(address _to, uint256 _amount, uint256 _maximumCost) external {
+    function purchase(address _to, uint256 _amount, uint256 _maximumCost) external nonReentrant {
         require(supply >= _amount, "IMSpaceLootCrateSale: insufficient supply");
+        supply -= _amount;
 
         uint256 purchaseCost = price * _amount;
         require(purchaseCost <= _maximumCost,  "IMSpaceLootCrateSale: insufficient payment");
@@ -53,25 +58,27 @@ abstract contract IMSpaceLootCrateSale is BaseLootCrateSale, Ownable {
         address purchaseRecipient = recipient == address(0) ? address(this) : recipient;
 
         // TODO use a safe transfer wrapper
-        IERC20(token).transferFrom(msg.sender, purchaseRecipient, purchaseCost);
+        IERC20(token).safeTransferFrom(msg.sender, purchaseRecipient, purchaseCost);
 
         // reveal purchased tokens
         _reveal(msg.sender, _to, _amount);
     }
 
     function setRecipient(address _recipient) external onlyOwner {
+        address oldRecipient = _recipient;
         recipient = _recipient;
+        emit RecipientChanged(oldRecipient, recipient);
     }
 
     function claimAllProceeds(address _to) external onlyOwner {
         uint256 amount = IERC20(token).balanceOf(address(this));
         IERC20(token).safeTransfer(_to, amount);
-        // TODO emit
+        emit ProceedsClaimed(_to, amount);
     }
 
     function claimProceeds(address _to, uint256 _amount) external onlyOwner {
         IERC20(token).safeTransfer(_to, _amount);
-        // TODO emit
+        emit ProceedsClaimed(_to, _amount);
     }
 
 }

@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "../extensions/ERC721Resale.sol";
 import "../utils/IBatchMintable.sol";
+import "../utils/IPFSLibrary.sol";
 
 abstract contract IMSpaceAccessToken is
     Context,
@@ -41,7 +42,10 @@ abstract contract IMSpaceAccessToken is
         _setupRole(MINTER_ROLE, _msgSender());
         _setupRole(ROYALTY_ROLE, _msgSender());
 
+        require(IPFSLibrary.uriSeemsValid(baseTokenURI), "ERC721Metadata: IPFS URI required");
         _baseTokenURI = baseTokenURI;
+
+        _setRoyaltyMax(1000);   // 10%
     }
 
     function _baseURI() internal view virtual override returns (string memory) {

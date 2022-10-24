@@ -12,6 +12,8 @@ import "../../token/utils/IBatchMintable.sol";
 abstract contract BaseLootCrateSale {
 
   event Reveal(address indexed user, address indexed to, uint256 tokens);
+  event SaleContentAdded(address indexed token, uint256 amount);
+  event SaleContentRemoved(address indexed token, uint256 amount);
 
   struct SaleContent {
       address token;
@@ -35,9 +37,7 @@ abstract contract BaseLootCrateSale {
           IBatchMintable(content.token).safeMint(_to, _count * content.amount);
       }
 
-      for (uint256 i = 0; i < _count; i++) {
-          emit Reveal(_user, _to, _tokens);
-      }
+      emit Reveal(_user, _to, _count * _tokens);
   }
 
   function _addContent(address _token, uint256 _amount) internal returns (uint256) {
@@ -46,6 +46,7 @@ abstract contract BaseLootCrateSale {
           amount: _amount
       }));
       _tokens += _amount;
+      emit SaleContentAdded(_token, _amount);
       return _saleContents.length - 1;
   }
 
@@ -64,6 +65,7 @@ abstract contract BaseLootCrateSale {
       }
 
       _saleContents.pop();
+      emit SaleContentRemoved(content.token, content.amount);
   }
 
 }

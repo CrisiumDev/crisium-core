@@ -7,9 +7,17 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "../token/utils/IPFSLibrary.sol";
 
-contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable {
+contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
+
+    event Reserve(address indexed to, uint256 amount);
+    event RecipientChanged(address indexed previousRecipient, address indexed newRecipient);
+    event ProceedsClaimed(address indexed recipient, uint256 amount);
+    event MaxSalesChanged(uint256 previousMaxSales, uint256 newMaxSales);
+    event PurchaseLimitChanged(uint256 previousPurchaseLimit, uint256 newPurchaseLimit);
 
     uint256 private constant MAX_256 = 2**256 - 1;
 
@@ -17,8 +25,8 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable {
     uint256 public sales;
 
     uint256 public purchaseLimit;
-    address public token;
-    uint256 public price;
+    address public immutable token;
+    uint256 public immutable price;
 
     address public recipient;
 
@@ -50,6 +58,7 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable {
     }
 
     function setBaseURI(string calldata uri) external onlyOwner {
+        require(IPFSLibrary.uriSeemsValid(uri), "ERC721Metadata: IPFS URI required");
         _setBaseURI(uri);
     }
 
@@ -68,6 +77,7 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable {
      */
     function reserve(address _to, uint256 _amount) external onlyOwner {
         _mint(msg.sender, _to, _amount);
+        emit Reserve(_to, _amount);
     }
 
     /**
@@ -105,7 +115,7 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable {
      * is willing to pay. The token transfer (by this contract) should already
      * be approved by the caller.
      */
-    function _purchase(address _to, uint256 _amount, uint256 _maximumCost) internal {
+    function _purchase(address _to, uint256 _amount, uint256 _maximumCost) internal nonReentrant {
         require(_amount <= purchaseLimit, "IMSpaceLootCrateToken: amount exceeds purchase limit");
         require(sales + _amount <= maxSales, "IMSpaceLootCrateToken: insufficient supply");
         sales += _amount;
@@ -157,7 +167,9 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable {
      * contract owner may make this call.
      */
     function setRecipient(address _recipient) external onlyOwner {
+        address oldRecipient = recipient;
         recipient = _recipient;
+        emit RecipientChanged(oldRecipient, recipient);
     }
 
     /**
@@ -167,7 +179,7 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable {
     function claimAllProceeds(address _to) external onlyOwner {
         uint256 amount = IERC20(token).balanceOf(address(this));
         IERC20(token).safeTransfer(_to, amount);
-        // TODO emit
+        emit ProceedsClaimed(_to, amount);
     }
 
     /**
@@ -176,7 +188,7 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable {
      */
     function claimProceeds(address _to, uint256 _amount) external onlyOwner {
         IERC20(token).safeTransfer(_to, _amount);
-        // TODO emit
+        emit ProceedsClaimed(_to, _amount);
     }
 
     /**
@@ -184,7 +196,9 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable {
      * to the value specified -- or number of total sales made so far, whichever is lower.
      */
     function setMaxSales(uint256 _sales) external onlyOwner {
+        uint256 previousMaxSales = maxSales;
         maxSales = _sales < sales ? sales : _sales;
+        emit MaxSalesChanged(previousMaxSales, maxSales);
     }
 
     /**
@@ -192,7 +206,9 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable {
      * in a single transaction.
      */
     function setPurchaseLimit(uint256 _purchaseLimit) external onlyOwner {
+        uint256 previousPurchaseLimit = _purchaseLimit;
         purchaseLimit = _purchaseLimit;
+        emit PurchaseLimitChanged(previousPurchaseLimit, purchaseLimit);
     }
 
 }

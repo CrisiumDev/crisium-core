@@ -14,12 +14,15 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 abstract contract ERC721Resale is ERC721, Ownable, IERC2981 {
 
     event RoyaltyChanged(address indexed receiver, uint256 percentBips);
+    event RoyaltyMaxChanged(uint256 percentBipsMax);
 
     // Royalty Receiver
     address public royaltyReceiver;
     uint256 public royaltyPercentBips; // eg 15% royalty would be 1500 bips
+    uint256 private _royaltyPercentBipsMax;
 
     constructor() {
+        _setRoyaltyMax(10000);
         _setRoyalty(msg.sender, 0);
     }
 
@@ -43,10 +46,21 @@ abstract contract ERC721Resale is ERC721, Ownable, IERC2981 {
 
     function _setRoyalty(address receiver, uint256 percentBips) internal virtual {
         require(percentBips <= 10000, "ERC721Resale: royalty percent BIPS must be <= 10000");
+        require(percentBips <= _royaltyPercentBipsMax, "ERC721Resale: royalty percent BIPS must be <= maximum");
         require(receiver != address(0), "ERC721Resale: new receiver is the zero address");
         royaltyReceiver = receiver;
         royaltyPercentBips = percentBips;
         emit RoyaltyChanged(receiver, percentBips);
+    }
+
+    function _setRoyaltyMax(uint256 maxPercentBips) internal virtual {
+        require(maxPercentBips <= 10000, "ERC721Resale: max royalty percent BIPS must be <= 10000");
+        _royaltyPercentBipsMax = maxPercentBips;
+        emit RoyaltyMaxChanged(maxPercentBips);
+        if (royaltyPercentBips > maxPercentBips) {
+            royaltyPercentBips = maxPercentBips;
+            emit RoyaltyChanged(royaltyReceiver, royaltyPercentBips);
+        }
     }
 
     function supportsInterface(bytes4 interfaceId)

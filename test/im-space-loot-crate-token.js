@@ -44,7 +44,7 @@ contract('IMSpaceLootCrateToken', (accounts) => {
     this.prizes = [
       await MockIMSpaceMissionToken.new("MockIMSpaceMissionToken", "MP", 500, currentTime + 30, { from:deployer }),
       await MockIMSpaceMissionToken.new("MockIMSpaceMissionToken2", "MP2", 100, currentTime + 30, { from:deployer }),
-      await MockIMSpaceAccessToken.new("MockIMSpaceAccessToken", "MPA", "http://tokenUri/", { from:deployer })
+      await MockIMSpaceAccessToken.new("MockIMSpaceAccessToken", "MPA", "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/deploymentToken/", { from:deployer })
     ];
     for (const prize of this.prizes) {
       await prize.grantRole(MINTER_ROLE, minter);
@@ -141,30 +141,30 @@ contract('IMSpaceLootCrateToken', (accounts) => {
       assert.equal(await crate.tokenURI(3), "");
       await expectRevert(crate.tokenURI(4), "ERC721Metadata: URI query for nonexistent token");
 
-      await crate.setBaseURI("http://my-site.com/base/", { from:deployer }),
+      await crate.setBaseURI("ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/base/", { from:deployer }),
 
       // check URIs
-      assert.equal(await crate.tokenURI(0), "http://my-site.com/base/0");
-      assert.equal(await crate.tokenURI(1), "http://my-site.com/base/1");
-      assert.equal(await crate.tokenURI(3), "http://my-site.com/base/3");
+      assert.equal(await crate.tokenURI(0), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/base/0");
+      assert.equal(await crate.tokenURI(1), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/base/1");
+      assert.equal(await crate.tokenURI(3), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/base/3");
 
       await expectRevert(crate.tokenURI(4), "ERC721Metadata: URI query for nonexistent token");
       await expectRevert(crate.tokenURI(8), "ERC721Metadata: URI query for nonexistent token");
 
       await crate.reserve(bob, 4, { from:deployer });
 
-      assert.equal(await crate.tokenURI(4), "http://my-site.com/base/4");
-      assert.equal(await crate.tokenURI(7), "http://my-site.com/base/7");
+      assert.equal(await crate.tokenURI(4), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/base/4");
+      assert.equal(await crate.tokenURI(7), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/base/7");
       await expectRevert(crate.tokenURI(8), "ERC721Metadata: URI query for nonexistent token");
 
       await crate.transferOwnership(revealer, { from:deployer });
-      await crate.setBaseURI("http://my-site.com/second/", { from:revealer });
+      await crate.setBaseURI("ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/second/", { from:revealer });
 
-      assert.equal(await crate.tokenURI(0), "http://my-site.com/second/0");
-      assert.equal(await crate.tokenURI(1), "http://my-site.com/second/1");
-      assert.equal(await crate.tokenURI(3), "http://my-site.com/second/3");
-      assert.equal(await crate.tokenURI(4), "http://my-site.com/second/4");
-      assert.equal(await crate.tokenURI(7), "http://my-site.com/second/7");
+      assert.equal(await crate.tokenURI(0), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/second/0");
+      assert.equal(await crate.tokenURI(1), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/second/1");
+      assert.equal(await crate.tokenURI(3), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/second/3");
+      assert.equal(await crate.tokenURI(4), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/second/4");
+      assert.equal(await crate.tokenURI(7), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/second/7");
       await expectRevert(crate.tokenURI(8), "ERC721Metadata: URI query for nonexistent token");
     });
   });
