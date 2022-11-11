@@ -3,15 +3,13 @@
 
 pragma solidity 0.8.10;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 /**
  * @dev Extension of ERC721 to support royalty configuration and Ownable, used
  * for project configuration on marketplaces.
  */
-abstract contract ERC721Resale is ERC721, Ownable, IERC2981 {
+abstract contract ERC721Resale is IERC2981 {
 
     event RoyaltyChanged(address indexed receiver, uint256 percentBips);
     event RoyaltyMaxChanged(uint256 percentBipsMax);
@@ -19,10 +17,10 @@ abstract contract ERC721Resale is ERC721, Ownable, IERC2981 {
     // Royalty Receiver
     address public royaltyReceiver;
     uint256 public royaltyPercentBips; // eg 15% royalty would be 1500 bips
-    uint256 private _royaltyPercentBipsMax;
+    uint256 public royaltyPercentBipsMax;
 
     constructor() {
-        _setRoyaltyMax(10000);
+        _setRoyaltyMax(1000);   // 10%
         _setRoyalty(msg.sender, 0);
     }
 
@@ -40,13 +38,13 @@ abstract contract ERC721Resale is ERC721, Ownable, IERC2981 {
         returns (address receiver, uint256 royaltyAmount)
     {
         receiver = address(royaltyReceiver);
-        require(receiver != address(0), "ERC721Resale: receiver is the zero address");
+        require(receiver != address(0), "ERC721Resale: receiver");
         royaltyAmount = (_salePrice * royaltyPercentBips) / 10000; // 10,000 is 100% in bips
     }
 
     function _setRoyalty(address receiver, uint256 percentBips) internal virtual {
         require(percentBips <= 10000, "ERC721Resale: royalty percent BIPS must be <= 10000");
-        require(percentBips <= _royaltyPercentBipsMax, "ERC721Resale: royalty percent BIPS must be <= maximum");
+        require(percentBips <= royaltyPercentBipsMax, "ERC721Resale: royalty percent BIPS must be <= maximum");
         require(receiver != address(0), "ERC721Resale: new receiver is the zero address");
         royaltyReceiver = receiver;
         royaltyPercentBips = percentBips;
@@ -55,7 +53,7 @@ abstract contract ERC721Resale is ERC721, Ownable, IERC2981 {
 
     function _setRoyaltyMax(uint256 maxPercentBips) internal virtual {
         require(maxPercentBips <= 10000, "ERC721Resale: max royalty percent BIPS must be <= 10000");
-        _royaltyPercentBipsMax = maxPercentBips;
+        royaltyPercentBipsMax = maxPercentBips;
         emit RoyaltyMaxChanged(maxPercentBips);
         if (royaltyPercentBips > maxPercentBips) {
             royaltyPercentBips = maxPercentBips;
@@ -67,9 +65,9 @@ abstract contract ERC721Resale is ERC721, Ownable, IERC2981 {
         public
         view
         virtual
-        override(ERC721, IERC165)
+        override
         returns (bool)
     {
-        return interfaceId == type(IERC2981).interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IERC2981).interfaceId || interfaceId == type(IERC165).interfaceId;
     }
 }

@@ -205,7 +205,7 @@ function testSetBaseURI(tester, testConfig = true) {
       assert.equal(await token.tokenURI(0), "");
       assert.equal(await token.tokenURI(1), "");
       assert.equal(await token.tokenURI(9), "");
-      await expectRevert(token.tokenURI(10), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(token.tokenURI(10), "ERC721: invalid token ID");
 
       await token.setBaseURI("ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/", { from:deployer }),
 
@@ -214,14 +214,14 @@ function testSetBaseURI(tester, testConfig = true) {
       assert.equal(await token.tokenURI(1), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/1");
       assert.equal(await token.tokenURI(9), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/9");
 
-      await expectRevert(token.tokenURI(10), "ERC721Metadata: URI query for nonexistent token");
-      await expectRevert(token.tokenURI(20), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(token.tokenURI(10), "ERC721: invalid token ID");
+      await expectRevert(token.tokenURI(20), "ERC721: invalid token ID");
 
       await token.safeMint(bob, 10, { from:deployer });
 
       assert.equal(await token.tokenURI(10), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/10");
       assert.equal(await token.tokenURI(19), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/19");
-      await expectRevert(token.tokenURI(20), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(token.tokenURI(20), "ERC721: invalid token ID");
 
       await token.setBaseURI("ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/", { from:revealer });
 
@@ -230,7 +230,7 @@ function testSetBaseURI(tester, testConfig = true) {
       assert.equal(await token.tokenURI(9), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/9");
       assert.equal(await token.tokenURI(10), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/10");
       assert.equal(await token.tokenURI(19), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/19");
-      await expectRevert(token.tokenURI(20), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(token.tokenURI(20), "ERC721: invalid token ID");
     });
   });
 }
@@ -274,14 +274,14 @@ function testSetTokenURI(tester, testConfig = true) {
 
       await expectRevert(
         token.setTokenURI(0, "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/custom/0", { from:deployer }),
-        "ERC721Metadata: URI set for nonexistent token"
+        "ERC721: invalid token ID"
       );
 
       await token.safeMint(alice, 10, { from:minter });
 
       await expectRevert(
         token.setTokenURI(10, "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/custom/eleven", { from:revealer }),
-        "ERC721Metadata: URI set for nonexistent token"
+        "ERC721: invalid token ID"
       );
     });
 
@@ -293,7 +293,7 @@ function testSetTokenURI(tester, testConfig = true) {
       assert.equal(await token.tokenURI(0), "");
       assert.equal(await token.tokenURI(1), "");
       assert.equal(await token.tokenURI(9), "");
-      await expectRevert(token.tokenURI(10), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(token.tokenURI(10), "ERC721: invalid token ID");
 
       await token.setBaseURI("ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/", { from:deployer }),
 
@@ -302,14 +302,14 @@ function testSetTokenURI(tester, testConfig = true) {
       assert.equal(await token.tokenURI(1), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/1");
       assert.equal(await token.tokenURI(9), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/9");
 
-      await expectRevert(token.tokenURI(10), "ERC721Metadata: URI query for nonexistent token");
-      await expectRevert(token.tokenURI(20), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(token.tokenURI(10), "ERC721: invalid token ID");
+      await expectRevert(token.tokenURI(20), "ERC721: invalid token ID");
 
       await token.safeMint(bob, 10, { from:deployer });
 
       assert.equal(await token.tokenURI(10), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/10");
       assert.equal(await token.tokenURI(19), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/19");
-      await expectRevert(token.tokenURI(20), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(token.tokenURI(20), "ERC721: invalid token ID");
 
       await token.setBaseURI("ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/", { from:revealer });
 
@@ -318,7 +318,7 @@ function testSetTokenURI(tester, testConfig = true) {
       assert.equal(await token.tokenURI(9), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/9");
       assert.equal(await token.tokenURI(10), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/10");
       assert.equal(await token.tokenURI(19), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/19");
-      await expectRevert(token.tokenURI(20), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(token.tokenURI(20), "ERC721: invalid token ID");
     });
 
     it('setTokenURI alters URI for the specified token', async () => {
@@ -332,7 +332,7 @@ function testSetTokenURI(tester, testConfig = true) {
       assert.equal(await token.tokenURI(1), "");
       assert.equal(await token.tokenURI(2), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/two");
       assert.equal(await token.tokenURI(9), "");
-      await expectRevert(token.tokenURI(10), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(token.tokenURI(10), "ERC721: invalid token ID");
 
       await token.setTokenURI(1,  "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/one", { from:revealer });
 
@@ -340,7 +340,7 @@ function testSetTokenURI(tester, testConfig = true) {
       assert.equal(await token.tokenURI(1), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/one");
       assert.equal(await token.tokenURI(2), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/two");
       assert.equal(await token.tokenURI(9), "");
-      await expectRevert(token.tokenURI(10), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(token.tokenURI(10), "ERC721: invalid token ID");
 
       await token.setBaseURI("ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/", { from:revealer });
 
@@ -348,13 +348,13 @@ function testSetTokenURI(tester, testConfig = true) {
       assert.equal(await token.tokenURI(1), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/one");
       assert.equal(await token.tokenURI(2), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/two");
       assert.equal(await token.tokenURI(9), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/9");
-      await expectRevert(token.tokenURI(10), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(token.tokenURI(10), "ERC721: invalid token ID");
 
       await token.safeMint(bob, 10, { from:deployer });
 
       assert.equal(await token.tokenURI(10), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/10");
       assert.equal(await token.tokenURI(19), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/19");
-      await expectRevert(token.tokenURI(20), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(token.tokenURI(20), "ERC721: invalid token ID");
 
       await token.setTokenURI(1,  "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/revision/one", { from:revealer });
       await token.setBaseURI("ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/replacement/", { from:revealer });
@@ -366,7 +366,7 @@ function testSetTokenURI(tester, testConfig = true) {
       assert.equal(await token.tokenURI(9), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/tokens/nine");
       assert.equal(await token.tokenURI(10), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/replacement/10");
       assert.equal(await token.tokenURI(19), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/replacement/19");
-      await expectRevert(token.tokenURI(20), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(token.tokenURI(20), "ERC721: invalid token ID");
     });
   });
 }
@@ -494,7 +494,7 @@ function testRoyaltyInfo(tester, testConfig = true) {
       assert.equal(res.receiver, alice);
       assert.equal(res.royaltyAmount, '800');
 
-      // set 25%
+      // set 10%
       await token.setRoyalty(bob, 1000, { from:deployer });
       res = await token.royaltyInfo(0, 100);
       assert.equal(res.receiver, bob);
@@ -519,12 +519,12 @@ function testTransferFrom(tester, testConfig = true) {
 
       await expectRevert(
         token.transferFrom(alice, dave, 0, { from:bob }),
-        "ERC721: transfer caller is not owner nor approved",
+        "ERC721: caller is not token owner or approved",
       );
 
       await expectRevert(
         token.transferFrom(alice, dave, 1, { from:minter }),
-        "ERC721: transfer caller is not owner nor approved",
+        "ERC721: caller is not token owner or approved",
       );
 
       await token.approve(minter, 2, { from:bob });
@@ -532,12 +532,12 @@ function testTransferFrom(tester, testConfig = true) {
 
       await expectRevert(
         token.transferFrom(bob, dave, 2, { from:alice }),
-        "ERC721: transfer caller is not owner nor approved",
+        "ERC721: caller is not token owner or approved",
       );
 
       await expectRevert(
         token.transferFrom(bob, dave, 3, { from:deployer }),
-        "ERC721: transfer caller is not owner nor approved",
+        "ERC721: caller is not token owner or approved",
       );
     });
 
@@ -652,12 +652,12 @@ function testSafeTransferFrom(tester, testConfig = true) {
 
       await expectRevert(
         token.safeTransferFrom(alice, dave, 0, { from:bob }),
-        "ERC721: transfer caller is not owner nor approved",
+        "ERC721: caller is not token owner or approved",
       );
 
       await expectRevert(
         token.safeTransferFrom(alice, dave, 1, { from:minter }),
-        "ERC721: transfer caller is not owner nor approved",
+        "ERC721: caller is not token owner or approved",
       );
 
       await token.approve(minter, 2, { from:bob });
@@ -665,12 +665,12 @@ function testSafeTransferFrom(tester, testConfig = true) {
 
       await expectRevert(
         token.safeTransferFrom(bob, dave, 2, { from:alice }),
-        "ERC721: transfer caller is not owner nor approved",
+        "ERC721: caller is not token owner or approved",
       );
 
       await expectRevert(
         token.safeTransferFrom(bob, dave, 3, { from:deployer }),
-        "ERC721: transfer caller is not owner nor approved",
+        "ERC721: caller is not token owner or approved",
       );
     });
 
@@ -870,7 +870,7 @@ async function tryTransfer(tester, { from, to, as, tokenId, permitted, approved,
   } else if (!permitted) {
     await expectRevert.unspecified(txPromise);
   } else if (!approved) {
-    await expectRevert(txPromise, "ERC721: transfer caller is not owner nor approved");
+    await expectRevert(txPromise, "ERC721: caller is not token owner or approved");
   } else if (!receiver) {
     await expectRevert(txPromise, "ERC721: transfer to non ERC721Receiver implementer");
   }

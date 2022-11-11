@@ -50,6 +50,7 @@ abstract contract BaseLootCrateSale {
       return _saleContents.length - 1;
   }
 
+  /* TODO: restore if needed by a subcontract
   function _removeContent(uint256 _index, bool _shift) internal returns (SaleContent memory content) {
       content = _saleContents[_index];
       _tokens -= content.amount;
@@ -67,5 +68,6 @@ abstract contract BaseLootCrateSale {
       _saleContents.pop();
       emit SaleContentRemoved(content.token, content.amount);
   }
+  */
 
 }

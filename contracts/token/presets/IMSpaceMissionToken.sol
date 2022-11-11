@@ -56,8 +56,6 @@ abstract contract IMSpaceMissionToken is
         _setupRole(MINTER_ROLE, _msgSender());
         _setupRole(REVEAL_ROLE, _msgSender());
         _setupRole(ROYALTY_ROLE, _msgSender());
-
-        _setRoyaltyMax(1000);   // 10%
     }
 
     /**
@@ -131,7 +129,7 @@ abstract contract IMSpaceMissionToken is
     function setTokenURI(uint256 tokenId, string memory customURI) public {
         require(hasRole(REVEAL_ROLE, _msgSender()), "IMSpaceMissionToken: must have reveal role to set token URI");
         require(IPFSLibrary.uriSeemsValid(customURI), "ERC721Metadata: IPFS URI required");
-        require(_exists(tokenId), "ERC721Metadata: URI set for nonexistent token");
+        require(_exists(tokenId), "ERC721: invalid token ID");
         _customTokenURI[tokenId] = customURI;
     }
 
@@ -143,7 +141,7 @@ abstract contract IMSpaceMissionToken is
      * @dev See {IERC721Metadata-tokenURI}.
      */
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+        require(_exists(tokenId), "ERC721: invalid token ID");
 
         string memory baseURI = _baseURI();
         string memory custom = _customTokenURI[tokenId];
@@ -193,13 +191,5 @@ abstract contract IMSpaceMissionToken is
         returns (bool)
     {
         return interfaceId == type(IBatchMintable).interfaceId || super.supportsInterface(interfaceId);
-    }
-
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual override(ERC721, ERC721Enumerable) {
-        super._beforeTokenTransfer(from, to, tokenId);
     }
 }

@@ -5,13 +5,13 @@ contract('MockIMSpaceAccessToken', (accounts) => {
   const MINTER_ROLE = web3.utils.soliditySha3('MINTER_ROLE');
   const ROYALTY_ROLE = web3.utils.soliditySha3('ROYALTY_ROLE');
 
-  const accountNames = ["deployer", "alice", "bob", "carol", "dave", "minter", "royalty"];
+  const accountNames = ["deployer", "alice", "bob", "carol", "dave", "minter", "royalty", "royaltyReceiver"];
   for (let i = 0; i < accountNames.length; i++) {
     this[accountNames[i]] = accounts[i];
   }
 
   beforeEach(async () => {
-    const { deployer, minter, royalty } = this;
+    const { deployer, minter, royalty, royaltyReceiver } = this;
 
     this.token = await MockIMSpaceAccessToken.new("MockIMSpaceAccessToken", "MP", "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB", { from: deployer });
     await this.token.grantRole(MINTER_ROLE, minter);
@@ -38,8 +38,7 @@ contract('MockIMSpaceAccessToken', (accounts) => {
     assert.equal(await token.totalSupply(), '0');
     assert.equal(await token.balanceOf(this.deployer), '0')
     assert.equal(await token.balanceOf(this.alice), '0');
-    assert.equal(await token.owner(), deployer);
-    assert.equal(await token.royaltyReceiver(), this.deployer);
+    assert.equal(await token.royaltyReceiver(), deployer);
     assert.equal(await token.royaltyPercentBips(), '0');
   });
 

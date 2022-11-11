@@ -24,7 +24,7 @@ contract('MockIMSpaceMissionToken', (accounts) => {
   const REVEAL_ROLE = web3.utils.soliditySha3('REVEAL_ROLE');
   const ROYALTY_ROLE = web3.utils.soliditySha3('ROYALTY_ROLE');
 
-  const accountNames = ["deployer", "alice", "bob", "carol", "dave", "minter", "revealer", "royalty"];
+  const accountNames = ["deployer", "alice", "bob", "carol", "dave", "minter", "revealer", "royalty", "royaltyReceiver"];
   for (let i = 0; i < accountNames.length; i++) {
     this[accountNames[i]] = accounts[i];
   }
@@ -59,8 +59,7 @@ contract('MockIMSpaceMissionToken', (accounts) => {
       assert.equal(await token.totalSupply(), '0');
       assert.equal(await token.balanceOf(this.deployer), '0')
       assert.equal(await token.balanceOf(this.alice), '0');
-      assert.equal(await token.owner(), deployer);
-      assert.equal(await token.royaltyReceiver(), this.deployer);
+      assert.equal(await token.royaltyReceiver(), deployer);
       assert.equal(await token.royaltyPercentBips(), '0');
 
       assert.equal(await token.revealStartingIndexBlock(), '0');

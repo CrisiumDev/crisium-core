@@ -44,8 +44,6 @@ abstract contract IMSpaceAccessToken is
 
         require(IPFSLibrary.uriSeemsValid(baseTokenURI), "ERC721Metadata: IPFS URI required");
         _baseTokenURI = baseTokenURI;
-
-        _setRoyaltyMax(1000);   // 10%
     }
 
     function _baseURI() internal view virtual override returns (string memory) {
@@ -97,13 +95,5 @@ abstract contract IMSpaceAccessToken is
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
-    }
-
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual override(ERC721, ERC721Enumerable) {
-        super._beforeTokenTransfer(from, to, tokenId);
     }
 }

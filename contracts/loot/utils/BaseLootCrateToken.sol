@@ -76,7 +76,7 @@ abstract contract BaseLootCrateToken is ERC721Enumerable, IERC721Receiver {
   }
 
   function _reveal(address _user, address _to, uint256 _tokenId) internal {
-      require(_exists(_tokenId), "BaseLootCrateToken: nonexistent token");
+      require(_exists(_tokenId), "Crate: no such tokenId");
 
       uint256 count = _crateContents[_tokenId].length;
       for (uint256 i = 0; i < count; i++) {
@@ -97,6 +97,7 @@ abstract contract BaseLootCrateToken is ERC721Enumerable, IERC721Receiver {
       return _saleContents.length - 1;
   }
 
+  /* TODO: restore if needed by a subcontract
   function _removeContent(uint256 _index, bool _shift) internal returns (SaleContent memory content) {
       content = _saleContents[_index];
       _tokens -= content.amount;
@@ -114,6 +115,7 @@ abstract contract BaseLootCrateToken is ERC721Enumerable, IERC721Receiver {
       _saleContents.pop();
       emit SaleContentRemoved(content.token, content.amount);
   }
+  */
 
   function onERC721Received(
       address,

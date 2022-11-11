@@ -32,7 +32,7 @@ const e = (val, pow) => {
 contract('IMSpaceLootCrateToken', (accounts) => {
   const MINTER_ROLE = web3.utils.soliditySha3('MINTER_ROLE');
 
-  const accountNames = ["deployer", "alice", "bob", "carol", "dave", "minter", "revealer", "royalty"];
+  const accountNames = ["deployer", "alice", "bob", "carol", "dave", "minter", "revealer", "royalty", "royaltyReceiver"];
   for (let i = 0; i < accountNames.length; i++) {
     this[accountNames[i]] = accounts[i];
   }
@@ -139,7 +139,7 @@ contract('IMSpaceLootCrateToken', (accounts) => {
       assert.equal(await crate.tokenURI(0), "");
       assert.equal(await crate.tokenURI(1), "");
       assert.equal(await crate.tokenURI(3), "");
-      await expectRevert(crate.tokenURI(4), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(crate.tokenURI(4), "ERC721: invalid token ID");
 
       await crate.setBaseURI("ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/base/", { from:deployer }),
 
@@ -148,14 +148,14 @@ contract('IMSpaceLootCrateToken', (accounts) => {
       assert.equal(await crate.tokenURI(1), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/base/1");
       assert.equal(await crate.tokenURI(3), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/base/3");
 
-      await expectRevert(crate.tokenURI(4), "ERC721Metadata: URI query for nonexistent token");
-      await expectRevert(crate.tokenURI(8), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(crate.tokenURI(4), "ERC721: invalid token ID");
+      await expectRevert(crate.tokenURI(8), "ERC721: invalid token ID");
 
       await crate.reserve(bob, 4, { from:deployer });
 
       assert.equal(await crate.tokenURI(4), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/base/4");
       assert.equal(await crate.tokenURI(7), "ipfs://QmT1yQm5qrcCXGcvLpNj8U74VNHfTUn19Z4fpFwjWaU6HB/base/7");
-      await expectRevert(crate.tokenURI(8), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(crate.tokenURI(8), "ERC721: invalid token ID");
 
       await crate.transferOwnership(revealer, { from:deployer });
       await crate.setBaseURI("ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/second/", { from:revealer });
@@ -165,7 +165,7 @@ contract('IMSpaceLootCrateToken', (accounts) => {
       assert.equal(await crate.tokenURI(3), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/second/3");
       assert.equal(await crate.tokenURI(4), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/second/4");
       assert.equal(await crate.tokenURI(7), "ipfs://QmTi2RCFGmPFconYf12VoZGeXTVxF6UQcpawysb3tHcsGg/second/7");
-      await expectRevert(crate.tokenURI(8), "ERC721Metadata: URI query for nonexistent token");
+      await expectRevert(crate.tokenURI(8), "ERC721: invalid token ID");
     });
   });
 
@@ -324,13 +324,13 @@ contract('IMSpaceLootCrateToken', (accounts) => {
       await paymentToken.approve(crate.address, balance, { from:alice });
       await expectRevert(
         crate.purchase(alice, 11, balance, { from:alice }),
-        "IMSpaceLootCrateToken: amount exceeds purchase limit"
+        "Crate: too many"
       );
 
       await paymentToken.approve(crate.address, MAX_UINT, { from:deployer });
       await expectRevert(
         crate.purchase(bob, 100, balance, { from:deployer }),
-        "IMSpaceLootCrateToken: amount exceeds purchase limit"
+        "Crate: too many"
       );
     });
 
@@ -341,14 +341,14 @@ contract('IMSpaceLootCrateToken', (accounts) => {
       await paymentToken.approve(crate.address, balance, { from:alice });
       await expectRevert(
         crate.purchase(alice, 4, balance, { from:alice }),
-        "IMSpaceLootCrateToken: insufficient supply"
+        "Crate: supply"
       );
 
       await crate.setMaxSales(7, { from:deployer });
       await paymentToken.approve(crate.address, MAX_UINT, { from:deployer });
       await expectRevert(
         crate.purchase(bob, 10, balance, { from:deployer }),
-        "IMSpaceLootCrateToken: insufficient supply"
+        "Crate: supply"
       );
     });
 
@@ -358,13 +358,13 @@ contract('IMSpaceLootCrateToken', (accounts) => {
       await paymentToken.approve(crate.address, balance, { from:alice });
       await expectRevert(
         crate.purchase(alice, 2, 49, { from:alice }),
-        "IMSpaceLootCrateToken: insufficient payment"
+        "Crate: payment"
       );
 
       await paymentToken.approve(crate.address, MAX_UINT, { from:deployer });
       await expectRevert(
         crate.purchase(bob, 10, 249, { from:deployer }),
-        "IMSpaceLootCrateToken: insufficient payment"
+        "Crate: payment"
       );
     });
 
@@ -490,7 +490,7 @@ contract('IMSpaceLootCrateToken', (accounts) => {
       await crate.purchase(alice, 3, MAX_UINT, { from:deployer });
       await expectRevert(
         crate.purchase(alice, 3, MAX_UINT, { from:deployer }),
-        "IMSpaceLootCrateToken: insufficient supply"
+        "Crate: supply"
       );
     });
   });
@@ -519,17 +519,17 @@ contract('IMSpaceLootCrateToken', (accounts) => {
 
       await expectRevert(
         crate.revealFrom(alice, alice, 0, { from:deployer }),
-        "IMSpaceLootCrateToken: reveal caller is not owner nor approved"
+        "Crate: unauthorized"
       );
 
       await expectRevert(
         crate.revealFrom(alice, bob, 1, { from:bob }),
-        "IMSpaceLootCrateToken: reveal caller is not owner nor approved"
+        "Crate: unauthorized"
       );
 
       await expectRevert(
         crate.revealFrom(bob, alice, 2, { from:deployer }),
-        "IMSpaceLootCrateToken: reveal caller is not owner nor approved"
+        "Crate: unauthorized"
       );
     });
 
@@ -538,12 +538,12 @@ contract('IMSpaceLootCrateToken', (accounts) => {
 
       await expectRevert(
         crate.revealFrom(bob, alice, 0, { from:alice }),
-        "IMSpaceLootCrateToken: reveal from incorrect owner"
+        "Crate: unauthorized"
       );
 
       await expectRevert(
         crate.revealFrom(alice, bob, 2, { from:bob }),
-        "IMSpaceLootCrateToken: reveal from incorrect owner"
+        "Crate: unauthorized"
       );
 
       await crate.setApprovalForAll(deployer, true, { from:alice });
@@ -551,12 +551,12 @@ contract('IMSpaceLootCrateToken', (accounts) => {
 
       await expectRevert(
         crate.revealFrom(bob, bob, 0, { from:deployer }),
-        "IMSpaceLootCrateToken: reveal from incorrect owner"
+        "Crate: unauthorized"
       );
 
       await expectRevert(
         crate.revealFrom(alice, alice, 2, { from:deployer }),
-        "IMSpaceLootCrateToken: reveal from incorrect owner"
+        "Crate: unauthorized"
       );
     });
 
@@ -565,13 +565,13 @@ contract('IMSpaceLootCrateToken', (accounts) => {
 
       await expectRevert(
         crate.revealFrom(alice, ZERO_ADDRESS, 0, { from:alice }),
-        "IMSpaceLootCrateToken: reveal to the zero address"
+        "Crate: 0 address"
       );
 
       await crate.setApprovalForAll(deployer, true, { from:bob });
       await expectRevert(
         crate.revealFrom(bob, ZERO_ADDRESS, 2, { from:deployer }),
-        "IMSpaceLootCrateToken: reveal to the zero address"
+        "Crate: 0 address"
       );
     });
 

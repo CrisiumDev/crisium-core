@@ -2,7 +2,9 @@
 pragma solidity 0.8.10;
 
 import "./utils/BaseLootCrateToken.sol";
+import "../token/extensions/ERC721Resale.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -10,11 +12,13 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../token/utils/IPFSLibrary.sol";
 
-contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable, ReentrancyGuard {
+contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable, ReentrancyGuard, IERC2981 {
     using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Permit;
 
     event Reserve(address indexed to, uint256 amount);
     event RecipientChanged(address indexed previousRecipient, address indexed newRecipient);
+    event RoyaltyChanged(uint256 percentBips);
     event ProceedsClaimed(address indexed recipient, uint256 amount);
     event MaxSalesChanged(uint256 previousMaxSales, uint256 newMaxSales);
     event PurchaseLimitChanged(uint256 previousPurchaseLimit, uint256 newPurchaseLimit);
@@ -29,6 +33,7 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable, ReentrancyGuard {
     uint256 public immutable price;
 
     address public recipient;
+    uint256 public resaleRoyaltyBips;
 
     string private _baseURIString = "";
 
@@ -43,14 +48,15 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable, ReentrancyGuard {
         address[] memory _tokens,
         uint256[] memory _amounts
     ) ERC721(_name, _symbol) {
-        require(_tokens.length > 0, "IMSpaceLootCrateToken: must specify contents of length >= 1");
-        require(_tokens.length == _amounts.length, "IMSpaceLootCrateToken: array parameters must have same length");
+        require(_tokens.length > 0, "Crate: no content");
+        require(_tokens.length == _amounts.length, "Crate: lengths !=");
 
         maxSales = _maxSales;
         purchaseLimit = _purchaseLimit;
         token = _token;
         price = _price;
         recipient = _recipient;
+        resaleRoyaltyBips = 500;
 
         for (uint256 i = 0; i < _tokens.length; i++) {
             _addContent(_tokens[i], _amounts[i]);
@@ -104,7 +110,7 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable, ReentrancyGuard {
         bool approveMax, uint256 deadline, uint8 v, bytes32 r, bytes32 s
     ) external {
         uint256 value = approveMax ? MAX_256 : _maximumCost;
-        IERC20Permit(token).permit(msg.sender, address(this), value, deadline, v, r, s);
+        IERC20Permit(token).safePermit(msg.sender, address(this), value, deadline, v, r, s);
         _purchase(_to, _amount, _maximumCost);
     }
 
@@ -116,12 +122,12 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable, ReentrancyGuard {
      * be approved by the caller.
      */
     function _purchase(address _to, uint256 _amount, uint256 _maximumCost) internal nonReentrant {
-        require(_amount <= purchaseLimit, "IMSpaceLootCrateToken: amount exceeds purchase limit");
-        require(sales + _amount <= maxSales, "IMSpaceLootCrateToken: insufficient supply");
+        require(_amount <= purchaseLimit, "Crate: too many");
+        require(sales + _amount <= maxSales, "Crate: supply");
         sales += _amount;
 
         uint256 purchaseCost = price * _amount;
-        require(purchaseCost <= _maximumCost,  "IMSpaceLootCrateToken: insufficient payment");
+        require(purchaseCost <= _maximumCost,  "Crate: payment");
 
         // transfer coins
         address purchaseRecipient = recipient == address(0) ? address(this) : recipient;
@@ -137,9 +143,9 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable, ReentrancyGuard {
      * it -- either the owner or `approve`d.
      */
     function revealFrom(address _from, address _to, uint256 _tokenId) external {
-        require(_isApprovedOrOwner(_msgSender(), _tokenId), "IMSpaceLootCrateToken: reveal caller is not owner nor approved");
-        require(ERC721.ownerOf(_tokenId) == _from, "IMSpaceLootCrateToken: reveal from incorrect owner");
-        require(_to != address(0), "IMSpaceLootCrateToken: reveal to the zero address");
+        require(_isApprovedOrOwner(_msgSender(), _tokenId), "Crate: unauthorized");
+        require(ERC721.ownerOf(_tokenId) == _from, "Crate: unauthorized");
+        require(_to != address(0), "Crate: 0 address");
 
         // reveal contents (destroys loot crate)
         _reveal(_from, _to, _tokenId);
@@ -159,6 +165,30 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable, ReentrancyGuard {
                 _reveal(owner, owner, tokenId);
             }
         }
+    }
+
+    /**
+     * @notice Called with the sale price to determine how much royalty is owed and to whom.
+     */
+    function royaltyInfo(
+        uint256, /*_tokenId*/
+        uint256 _salePrice
+    )
+        external
+        view
+        virtual
+        override
+        returns (address receiver, uint256 royaltyAmount)
+    {
+        // 5% royalties
+        receiver = recipient == address(0) ? address(this) : recipient;
+        royaltyAmount = (_salePrice * resaleRoyaltyBips) / 10000;
+    }
+
+    function setRoyalty(uint256 percentBips) external onlyOwner {
+        require(percentBips <= 1000, "Crate: royalty must be <= 10%");
+        resaleRoyaltyBips = percentBips;
+        emit RoyaltyChanged(percentBips);
     }
 
     /**
@@ -211,4 +241,15 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable, ReentrancyGuard {
         emit PurchaseLimitChanged(previousPurchaseLimit, purchaseLimit);
     }
 
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(IERC165, ERC721Enumerable)
+        returns (bool)
+    {
+        return interfaceId == type(IERC165).interfaceId
+            || interfaceId == type(IERC2981).interfaceId
+            || ERC721Enumerable.supportsInterface(interfaceId);
+    }
 }
