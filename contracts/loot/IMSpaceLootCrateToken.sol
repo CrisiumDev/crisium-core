@@ -2,24 +2,26 @@
 pragma solidity ^0.8.10;
 
 import "./utils/BaseLootCrateToken.sol";
-import "../token/extensions/ERC721Resale.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "operator-filter-registry/src/DefaultOperatorFilterer.sol";
 import "../token/utils/IPFSLibrary.sol";
 
-contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable, ReentrancyGuard, IERC2981 {
+contract IMSpaceLootCrateToken is
+    BaseLootCrateToken,
+    Ownable,
+    ReentrancyGuard,
+    DefaultOperatorFilterer,
+    IERC2981
+{
     using SafeERC20 for IERC20;
-    using SafeERC20 for IERC20Permit;
 
     event Reserve(address indexed to, uint256 amount);
-    event RecipientChanged(address indexed previousRecipient, address indexed newRecipient);
-    event RoyaltyChanged(uint256 percentBips);
-    event ProceedsClaimed(address indexed recipient, uint256 amount);
+    event RoyaltyChanged(address indexed receiver, uint256 percentBips);
     event MaxSalesChanged(uint256 previousMaxSales, uint256 newMaxSales);
     event PurchaseLimitChanged(uint256 previousPurchaseLimit, uint256 newPurchaseLimit);
 
@@ -37,6 +39,9 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable, ReentrancyGuard, 
 
     string private _baseURIString = "";
 
+    // Operator filterer
+    bool public filterOperators = true;
+
     constructor(
         string memory _name,
         string memory _symbol,
@@ -50,6 +55,7 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable, ReentrancyGuard, 
     ) ERC721(_name, _symbol) {
         require(_tokens.length > 0, "Crate: no content");
         require(_tokens.length == _amounts.length, "Crate: lengths !=");
+        require(_recipient != address(0), "Crate: recipient = 0");
 
         maxSales = _maxSales;
         purchaseLimit = _purchaseLimit;
@@ -93,35 +99,7 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable, ReentrancyGuard, 
      * is willing to pay. The token transfer (by this contract) should already
      * be approved by the caller.
      */
-    function purchase(address _to, uint256 _amount, uint256 _maximumCost) external {
-        _purchase(_to, _amount, _maximumCost);
-    }
-
-    /**
-     * @dev Mints `_amount` loot crates into `_to`'s wallet, which can be later
-     * revealed to receive mission tokens. Requires a payment of `token`, equal
-     * to the current `price` * `_amount`. `_maximumCost` is the amount the caller
-     * is willing to pay. The token transfer (by this contract) will be approved
-     * using the provided permit, for either `_maximumCost` or `256**2 - 1`
-     * (if `approveMax`).
-     */
-    function purchaseWithPermit(
-        address _to, uint256 _amount, uint256 _maximumCost,
-        bool approveMax, uint256 deadline, uint8 v, bytes32 r, bytes32 s
-    ) external {
-        uint256 value = approveMax ? MAX_256 : _maximumCost;
-        IERC20Permit(token).safePermit(msg.sender, address(this), value, deadline, v, r, s);
-        _purchase(_to, _amount, _maximumCost);
-    }
-
-    /**
-     * @dev Mints `_amount` loot crates into `_to`'s wallet, which can be later
-     * revealed to receive mission tokens. Requires a payment of `token`, equal
-     * to the current `price` * `_amount`. `_maximumCost` is the amount the caller
-     * is willing to pay. The token transfer (by this contract) should already
-     * be approved by the caller.
-     */
-    function _purchase(address _to, uint256 _amount, uint256 _maximumCost) internal nonReentrant {
+    function purchase(address _to, uint256 _amount, uint256 _maximumCost) public nonReentrant {
         require(_amount <= purchaseLimit, "Crate: too many");
         require(sales + _amount <= maxSales, "Crate: supply");
         sales += _amount;
@@ -180,45 +158,16 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable, ReentrancyGuard, 
         override
         returns (address receiver, uint256 royaltyAmount)
     {
-        // 5% royalties
-        receiver = recipient == address(0) ? address(this) : recipient;
+        receiver = recipient;
         royaltyAmount = (_salePrice * resaleRoyaltyBips) / 10000;
     }
 
-    function setRoyalty(uint256 percentBips) external onlyOwner {
-        require(percentBips <= 1000, "Crate: royalty must be <= 10%");
-        resaleRoyaltyBips = percentBips;
-        emit RoyaltyChanged(percentBips);
-    }
-
-    /**
-     * Set the recipient address for purchase costs. If set to the zero-address,
-     * purchase costs will be stored in this contract until claimed.  Only the
-     * contract owner may make this call.
-     */
-    function setRecipient(address _recipient) external onlyOwner {
-        address oldRecipient = recipient;
+    function setRoyalty(address _recipient, uint256 _percentBips) external onlyOwner {
+        require(_recipient != address(0), "Crate: recipient = 0");
+        require(_percentBips <= 1000, "Crate: royalty must be <= 10%");
         recipient = _recipient;
-        emit RecipientChanged(oldRecipient, recipient);
-    }
-
-    /**
-     * Claim all sale proceeds currently held by this contract, transferring them
-     * to `_to`. Only the contract owner may make this call.
-     */
-    function claimAllProceeds(address _to) external onlyOwner {
-        uint256 amount = IERC20(token).balanceOf(address(this));
-        IERC20(token).safeTransfer(_to, amount);
-        emit ProceedsClaimed(_to, amount);
-    }
-
-    /**
-     * Claim `_amount` sale proceeds currently held by this contract, transferring them
-     * to `_to`. Only the contract owner may make this call.
-     */
-    function claimProceeds(address _to, uint256 _amount) external onlyOwner {
-        IERC20(token).safeTransfer(_to, _amount);
-        emit ProceedsClaimed(_to, _amount);
+        resaleRoyaltyBips = _percentBips;
+        emit RoyaltyChanged(_recipient, _percentBips);
     }
 
     /**
@@ -251,5 +200,41 @@ contract IMSpaceLootCrateToken is BaseLootCrateToken, Ownable, ReentrancyGuard, 
         return interfaceId == type(IERC165).interfaceId
             || interfaceId == type(IERC2981).interfaceId
             || ERC721Enumerable.supportsInterface(interfaceId);
+    }
+
+    // Operator Filterer
+
+    function setFilterOperators(bool _filterOperators) public virtual onlyOwner {
+        filterOperators = _filterOperators;
+    }
+
+    function setApprovalForAll(address operator, bool approved) public override(ERC721, IERC721) onlyAllowedOperatorApproval(operator) {
+        super.setApprovalForAll(operator, approved);
+    }
+
+    function approve(address operator, uint256 tokenId) public override(ERC721, IERC721) onlyAllowedOperatorApproval(operator) {
+        super.approve(operator, tokenId);
+    }
+
+    function transferFrom(address from, address to, uint256 tokenId) public override(ERC721, IERC721) onlyAllowedOperator(from) {
+        super.transferFrom(from, to, tokenId);
+    }
+
+    function safeTransferFrom(address from, address to, uint256 tokenId) public override(ERC721, IERC721) onlyAllowedOperator(from) {
+        super.safeTransferFrom(from, to, tokenId);
+    }
+
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data)
+        public
+        override(ERC721, IERC721)
+        onlyAllowedOperator(from)
+    {
+        super.safeTransferFrom(from, to, tokenId, data);
+    }
+
+    function _checkFilterOperator(address operator) internal view override {
+        if (filterOperators) {
+            super._checkFilterOperator(operator);
+        }
     }
 }

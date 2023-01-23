@@ -55,11 +55,11 @@ contract('IMSpaceLootCrateToken', (accounts) => {
 
   context('contract basics', () => {
     beforeEach(async () => {
-      const { deployer, minter, royalty, revealer, token, prizes } = this;
+      const { deployer, minter, royalty, royaltyReceiver, revealer, token, prizes } = this;
 
       this.token = this.crate = await IMSpaceLootCrateToken.new(
         "IMSpaceLootCrateToken", "LC", 100,
-        10, this.paymentToken.address, 25, ZERO_ADDRESS,
+        10, this.paymentToken.address, 25, royaltyReceiver,
         this.prizes.map(a => a.address), [2, 1, 1],
         { from:deployer }
       );
@@ -84,7 +84,7 @@ contract('IMSpaceLootCrateToken', (accounts) => {
     });
 
     it('should have appropriate starting values', async () => {
-      const { token, prizes, deployer, alice } = this;
+      const { token, prizes, deployer, alice, royaltyReceiver } = this;
 
       assert.equal(await token.totalSupply(), '0');
       assert.equal(await token.balanceOf(this.deployer), '0')
@@ -98,7 +98,7 @@ contract('IMSpaceLootCrateToken', (accounts) => {
       assert.equal(await token.token(),  this.paymentToken.address);
       assert.equal(await token.price(), '25');
 
-      assert.equal(await token.recipient(), ZERO_ADDRESS);
+      assert.equal(await token.recipient(), royaltyReceiver);
 
       assert.equal(await token.saleContentsLength(), '3');
       let contents = await token.saleContents(0);
@@ -171,11 +171,11 @@ contract('IMSpaceLootCrateToken', (accounts) => {
 
   context('reserve', () => {
     beforeEach(async () => {
-      const { deployer, minter, revealer, token, prizes } = this;
+      const { deployer, minter, revealer, royaltyReceiver, token, prizes } = this;
 
       this.token = this.crate = await IMSpaceLootCrateToken.new(
         "IMSpaceLootCrateToken", "LC", 100,
-        10, this.paymentToken.address, 25, ZERO_ADDRESS,
+        10, this.paymentToken.address, 25, royaltyReceiver,
         this.prizes.map(a => a.address), [3, 2, 1],
         { from:deployer }
       );
@@ -300,11 +300,11 @@ contract('IMSpaceLootCrateToken', (accounts) => {
   context('purchase', () => {
     const balance = 10000000;
     beforeEach(async () => {
-      const { deployer, minter, revealer, token, paymentToken, prizes, alice, bob, carol } = this;
+      const { deployer, minter, revealer, royaltyReceiver, token, paymentToken, prizes, alice, bob, carol } = this;
 
       this.token = this.crate = await IMSpaceLootCrateToken.new(
         "IMSpaceLootCrateToken", "LC", 100,
-        10, paymentToken.address, 25, ZERO_ADDRESS,
+        10, paymentToken.address, 25, royaltyReceiver,
         this.prizes.map(a => a.address), [3, 2, 1],
         { from:deployer }
       );
@@ -383,29 +383,29 @@ contract('IMSpaceLootCrateToken', (accounts) => {
       );
     });
 
-    it("purchase transfers payment tokens from purchaser to receiver (or contract if none)", async () => {
-      const { crate, paymentToken, deployer, minter, alice, bob, carol } = this;
+    it("purchase transfers payment tokens from purchaser to receiver", async () => {
+      const { crate, paymentToken, deployer, royaltyReceiver, minter, alice, bob, carol } = this;
 
       await paymentToken.approve(crate.address, MAX_UINT, { from:alice });
       await crate.purchase(alice, 2, 50, { from:alice });
       assert.equal(await paymentToken.balanceOf(alice), `${balance - 50}`);
-      assert.equal(await paymentToken.balanceOf(crate.address), `50`);
+      assert.equal(await paymentToken.balanceOf(royaltyReceiver), `50`);
 
       await paymentToken.approve(crate.address, 100, { from:deployer });
       await crate.purchase(bob, 4, 150, { from:deployer });
       assert.equal(await paymentToken.balanceOf(deployer), `${balance - 100}`);
-      assert.equal(await paymentToken.balanceOf(crate.address), `150`);
+      assert.equal(await paymentToken.balanceOf(royaltyReceiver), `150`);
 
-      await crate.setRecipient(carol, { from:deployer });
+      await crate.setRoyalty(carol, 500, { from:deployer });
       await crate.purchase(alice, 3, 75, { from:alice });
       assert.equal(await paymentToken.balanceOf(alice), `${balance - 125}`);
-      assert.equal(await paymentToken.balanceOf(crate.address), `150`);
+      assert.equal(await paymentToken.balanceOf(royaltyReceiver), `150`);
       assert.equal(await paymentToken.balanceOf(carol), `${balance + 75}`);
 
-      await crate.setRecipient(ZERO_ADDRESS, { from:deployer });
+      await crate.setRoyalty(royaltyReceiver, 500, { from:deployer });
       await crate.purchase(alice, 5, 125, { from:alice });
       assert.equal(await paymentToken.balanceOf(alice), `${balance - 250}`);
-      assert.equal(await paymentToken.balanceOf(crate.address), `275`);
+      assert.equal(await paymentToken.balanceOf(royaltyReceiver), `275`);
       assert.equal(await paymentToken.balanceOf(carol), `${balance + 75}`);
     });
 
@@ -497,11 +497,11 @@ contract('IMSpaceLootCrateToken', (accounts) => {
 
   context('revealFrom', () => {
     beforeEach(async () => {
-      const { deployer, minter, revealer, token, prizes, alice, bob } = this;
+      const { deployer, minter, revealer, royaltyReceiver, token, prizes, alice, bob } = this;
 
       this.token = this.crate = await IMSpaceLootCrateToken.new(
         "IMSpaceLootCrateToken", "LC", 100,
-        10, this.paymentToken.address, 25, ZERO_ADDRESS,
+        10, this.paymentToken.address, 25, royaltyReceiver,
         this.prizes.map(a => a.address), [3, 2, 1],
         { from:deployer }
       );
@@ -628,11 +628,11 @@ contract('IMSpaceLootCrateToken', (accounts) => {
 
   context('forceReveal', () => {
     beforeEach(async () => {
-      const { deployer, minter, revealer, token, prizes, alice, bob } = this;
+      const { deployer, minter, revealer, royaltyReceiver, token, prizes, alice, bob } = this;
 
       this.token = this.crate = await IMSpaceLootCrateToken.new(
         "IMSpaceLootCrateToken", "LC", 100,
-        10, this.paymentToken.address, 25, ZERO_ADDRESS,
+        10, this.paymentToken.address, 25, royaltyReceiver,
         this.prizes.map(a => a.address), [3, 2, 1],
         { from:deployer }
       );
