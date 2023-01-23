@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.10;
+pragma solidity ^0.8.10;
 
 import "../../token/utils/IBatchMintable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";

@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.10;
+pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "operator-filter-registry/src/DefaultOperatorFilterer.sol";
 import "../extensions/ERC721Resale.sol";
 import "../utils/IBatchMintable.sol";
 import "../utils/IPFSLibrary.sol";
@@ -13,6 +14,7 @@ import "../utils/IPFSLibrary.sol";
 abstract contract IMSpaceAccessToken is
     Context,
     AccessControlEnumerable,
+    DefaultOperatorFilterer,
     ERC721Enumerable,
     ERC721Resale,
     IBatchMintable
@@ -25,6 +27,9 @@ abstract contract IMSpaceAccessToken is
     Counters.Counter private _tokenIdTracker;
 
     string private _baseTokenURI;
+
+    // Operator filterer
+    bool public filterOperators = true;
 
     /**
      * @dev Grants `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `PAUSER_ROLE` to the
@@ -95,5 +100,42 @@ abstract contract IMSpaceAccessToken is
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
+    }
+
+    // Operator Filterer
+
+    function setFilterOperators(bool _filterOperators) public virtual {
+        require(hasRole(ROYALTY_ROLE, _msgSender()), "DefaultOperatorFilterer: must have royalty role to setFilterOperators");
+        filterOperators = _filterOperators;
+    }
+
+    function setApprovalForAll(address operator, bool approved) public override(ERC721, IERC721) onlyAllowedOperatorApproval(operator) {
+        super.setApprovalForAll(operator, approved);
+    }
+
+    function approve(address operator, uint256 tokenId) public override(ERC721, IERC721) onlyAllowedOperatorApproval(operator) {
+        super.approve(operator, tokenId);
+    }
+
+    function transferFrom(address from, address to, uint256 tokenId) public override(ERC721, IERC721) onlyAllowedOperator(from) {
+        super.transferFrom(from, to, tokenId);
+    }
+
+    function safeTransferFrom(address from, address to, uint256 tokenId) public override(ERC721, IERC721) onlyAllowedOperator(from) {
+        super.safeTransferFrom(from, to, tokenId);
+    }
+
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data)
+        public
+        override(ERC721, IERC721)
+        onlyAllowedOperator(from)
+    {
+        super.safeTransferFrom(from, to, tokenId, data);
+    }
+
+    function _checkFilterOperator(address operator) internal view override {
+        if (filterOperators) {
+            super._checkFilterOperator(operator);
+        }
     }
 }

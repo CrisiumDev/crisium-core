@@ -2,7 +2,7 @@
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-pragma solidity 0.8.10;
+pragma solidity ^0.8.10;
 contract MockERC20 is ERC20 {
     constructor(
         string memory name,
